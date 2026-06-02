@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marcaciones → Tango</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f0f4f8;
+      color: #1a202c;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #1a365d;
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    header h1 { font-size: 1.2rem; font-weight: 700; }
+    header span { font-size: 0.85rem; color: #90cdf4; }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1rem; }
+
+    /* Upload zone */
+    .upload-zone {
+      border: 2px dashed #90cdf4;
+      border-radius: 12px;
+      padding: 3rem 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: white;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: #3182ce;
+      background: #ebf8ff;
+    }
+    .upload-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+    .upload-text { font-size: 1.05rem; font-weight: 600; color: #2d3748; }
+    .upload-hint { font-size: 0.82rem; color: #a0aec0; margin-top: 0.4rem; }
+    #fileInput { display: none; }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.55rem 1.3rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+      text-decoration: none;
+    }
+    .btn-primary { background: #3182ce; color: white; }
+    .btn-primary:hover { background: #2b6cb0; }
+    .btn-success { background: #38a169; color: white; }
+    .btn-success:hover { background: #276749; }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* Cards */
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .card-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #2d3748;
+      margin-bottom: 1rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    /* Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.2rem;
+    }
+    .stat {
+      background: #f7fafc;
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+    }
+    .stat-val { font-size: 2rem; font-weight: 800; color: #3182ce; line-height: 1; }
+    .stat-lbl { font-size: 0.78rem; color: #718096; margin-top: 0.3rem; }
+
+    /* Table */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+    th {
+      background: #f7fafc;
+      text-align: left;
+      padding: 0.55rem 0.85rem;
+      font-weight: 600;
+      border-bottom: 2px solid #e2e8f0;
+      color: #4a5568;
+      white-space: nowrap;
+    }
+    td { padding: 0.45rem 0.85rem; border-bottom: 1px solid #f0f4f8; }
+    tr:hover td { background: #f7fafc; }
+
+    /* Badges */
+    .badge {
+      display: inline-block;
+      padding: 0.18rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .bg-hsaut   { background: #bee3f8; color: #2b6cb0; }
+    .bg-hsfet   { background: #fed7d7; color: #9b2c2c; }
+    .bg-hsex50  { background: #feebc8; color: #7b341e; }
+    .bg-hsex100 { background: #e9d8fd; color: #553c9a; }
+
+    /* Alerts */
+    .alert {
+      padding: 0.8rem 1rem;
+      border-radius: 8px;
+      margin-top: 1rem;
+      font-size: 0.88rem;
+    }
+    .alert-error { background: #fed7d7; color: #9b2c2c; border: 1px solid #fc8181; }
+    .alert-warn  { background: #fefcbf; color: #744210; border: 1px solid #f6e05e; }
+
+    .actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .hidden { display: none !important; }
+
+    /* File name pill */
+    .file-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #ebf8ff;
+      border: 1px solid #90cdf4;
+      border-radius: 9999px;
+      padding: 0.3rem 0.9rem;
+      font-size: 0.82rem;
+      color: #2b6cb0;
+      font-weight: 600;
+      margin-top: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Marcaciones → Tango</h1>
+    <span>Importá el reporte de marcaciones y exportá el archivo de novedades</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="upload-zone" id="uploadZone">
+    <div class="upload-icon">📊</div>
+    <div class="upload-text">Arrastrá el Excel de marcaciones acá</div>
+    <div class="upload-hint">o hacé clic para seleccionar el archivo (.xlsx / .xls)</div>
+    <input type="file" id="fileInput" accept=".xlsx,.xls">
+    <div id="filePill" class="hidden"></div>
+  </div>
+
+  <div id="alertError" class="alert alert-error hidden"></div>
+  <div id="alertWarn"  class="alert alert-warn  hidden"></div>
+
+  <div id="resultsSection" class="hidden">
+
+    <div class="card">
+      <div class="card-title">Resumen</div>
+      <div class="stats-grid" id="statsGrid"></div>
+      <div class="actions">
+        <button class="btn btn-success" id="exportBtn">⬇ Exportar Excel Tango</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Vista previa — Novedades Tango</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Nro. Legajo</th>
+              <th>Código de Novedad</th>
+              <th>Cantidad</th>
+              <th>Valor</th>
+              <th>Observaciones</th>
+            </tr>
+          </thead>
+          <tbody id="previewBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ─── Helpers de tiempo ────────────────────────────────────────────────────────
+
+/** Convierte un valor de celda Excel (número fraccionario de día, o string HH:MM:SS) a minutos enteros. */
+function cellToMinutes(val) {
+  if (val === null || val === undefined || val === '') return 0;
+
+  if (typeof val === 'number') {
+    // Excel guarda tiempo como fracción de día (1.0 = 24 h).
+    // Duraciones > 24 h pueden superar 1.0.
+    return Math.round(val * 24 * 60);
+  }
+
+  if (typeof val === 'string') {
+    const s = val.trim();
+    if (!s) return 0;
+    const parts = s.split(':');
+    const h = parseInt(parts[0], 10) || 0;
+    const m = parseInt(parts[1], 10) || 0;
+    return h * 60 + m;
+  }
+
+  return 0;
+}
+
+/** Redondea minutos a horas enteras con la regla de 30 min:
+ *  fracción < 30 min → se descarta; >= 30 min → sube a la siguiente hora. */
+function roundHours30(totalMinutes) {
+  if (totalMinutes <= 0) return 0;
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+  return m >= 30 ? h + 1 : h;
+}
+
+/** Convierte minutos a horas decimales con 2 dígitos (ej. 7:30 → 7.50). */
+function minutesToDecimal(min) {
+  return Math.round((min / 60) * 100) / 100;
+}
+
+// ─── Detección de columnas ────────────────────────────────────────────────────
+
+function detectColumns(headerRow) {
+  const cols = {};
+  headerRow.forEach((cell, i) => {
+    const v = String(cell ?? '').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').trim();
+    if (v === 'empleado')                                       cols.empleado     = i;
+    else if (v === 'legajo')                                    cols.legajo       = i;
+    else if (v === 'fecha'     && cols.fecha     === undefined) cols.fecha        = i;
+    else if (v === 'marcaciones')                               cols.marcaciones  = i;
+    else if (v === 'observaciones')                             cols.observaciones = i;
+    else if (v === 'normal'    && cols.normal    === undefined) cols.normal       = i;
+    else if (v.includes('50')  && v.includes('extra') && cols.ext50  === undefined) cols.ext50  = i;
+    else if (v.includes('100') && v.includes('extra') && cols.ext100 === undefined) cols.ext100 = i;
+  });
+  return cols;
+}
+
+// ─── Procesamiento del reporte ────────────────────────────────────────────────
+
+function processSheet(ws) {
+  const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: true });
+
+  // Encontrar fila de encabezados
+  let headerIdx = -1;
+  let cols = {};
+  for (let i = 0; i < Math.min(rows.length, 15); i++) {
+    cols = detectColumns(rows[i]);
+    if (cols.empleado !== undefined && cols.legajo !== undefined && cols.normal !== undefined) {
+      headerIdx = i;
+      break;
+    }
+  }
+
+  if (headerIdx === -1) {
+    throw new Error(
+      'No se encontraron las columnas esperadas (Empleado, Legajo, Normal).\n' +
+      'Verificá que sea el reporte de marcaciones correcto.'
+    );
+  }
+
+  const missing = [];
+  if (cols.ext50  === undefined) missing.push('Extras 50%');
+  if (cols.ext100 === undefined) missing.push('Extras 100%');
+
+  const warnings = missing.length
+    ? `Columnas no encontradas y omitidas: ${missing.join(', ')}.`
+    : '';
+
+  // Acumular por empleado
+  const employees = {};
+
+  for (let i = headerIdx + 1; i < rows.length; i++) {
+    const row = rows[i];
+    const nombreRaw = String(row[cols.empleado] ?? '').trim();
+    const legajoRaw = String(row[cols.legajo]   ?? '').trim();
+
+    if (!nombreRaw || !legajoRaw) continue;
+    if (nombreRaw.toLowerCase() === 'totales') continue;
+
+    const key = legajoRaw;
+    if (!employees[key]) {
+      employees[key] = {
+        nombre:    nombreRaw,
+        legajo:    legajoRaw,
+        normalMin: 0,   // días comunes → HSAUT
+        feriadoMin: 0,  // días feriado → HSFET
+        ext50Min:  0,
+        ext100Min: 0,
+      };
+    }
+
+    const normalMin = cellToMinutes(row[cols.normal]);
+    const ext50Min  = cols.ext50  !== undefined ? cellToMinutes(row[cols.ext50])  : 0;
+    const ext100Min = cols.ext100 !== undefined ? cellToMinutes(row[cols.ext100]) : 0;
+
+    const obsText = String(row[cols.observaciones] ?? '').toUpperCase();
+    const mrcText = String(row[cols.marcaciones]   ?? '').toLowerCase();
+    const isFeriado = obsText.includes('FERIADO') || mrcText.includes('feriado');
+
+    if (isFeriado) {
+      employees[key].feriadoMin += normalMin;
+    } else {
+      employees[key].normalMin += normalMin;
+    }
+    employees[key].ext50Min  += ext50Min;
+    employees[key].ext100Min += ext100Min;
+  }
+
+  return { employees, warnings };
+}
+
+// ─── Generación de filas Tango ────────────────────────────────────────────────
+
+const BADGE = {
+  HSAUT:   'bg-hsaut',
+  HSFET:   'bg-hsfet',
+  HSEX50:  'bg-hsex50',
+  HSEX100: 'bg-hsex100',
+};
+
+function buildTangoRows(employees) {
+  const today = new Date();
+  const fecha = [
+    String(today.getDate()).padStart(2, '0'),
+    String(today.getMonth() + 1).padStart(2, '0'),
+    today.getFullYear(),
+  ].join('/');
+
+  const rows = [];
+
+  Object.values(employees).forEach(emp => {
+    const hsaut   = minutesToDecimal(emp.normalMin);
+    const hsfet   = minutesToDecimal(emp.feriadoMin);
+    const hsex50  = roundHours30(emp.ext50Min);
+    const hsex100 = roundHours30(emp.ext100Min);
+
+    if (hsaut   > 0) rows.push({ fecha, legajo: emp.legajo, codigo: 'HSAUT',   cantidad: hsaut,   valor: 1, obs: '' });
+    if (hsfet   > 0) rows.push({ fecha, legajo: emp.legajo, codigo: 'HSFET',   cantidad: hsfet,   valor: 1, obs: '' });
+    if (hsex50  > 0) rows.push({ fecha, legajo: emp.legajo, codigo: 'HSEX50',  cantidad: hsex50,  valor: 1, obs: '' });
+    if (hsex100 > 0) rows.push({ fecha, legajo: emp.legajo, codigo: 'HSEX100', cantidad: hsex100, valor: 1, obs: '' });
+  });
+
+  return { fecha, rows };
+}
+
+// ─── Exportar Excel ───────────────────────────────────────────────────────────
+
+function exportExcel(rows, fecha) {
+  const header = ['Fecha', 'Número de legajo', 'Código de novedad', 'Cantidad', 'Valor', 'Observaciones'];
+  const body   = rows.map(r => [r.fecha, r.legajo, r.codigo, r.cantidad, r.valor, r.obs]);
+
+  const ws = XLSX.utils.aoa_to_sheet([header, ...body]);
+  ws['!cols'] = [{ wch: 12 }, { wch: 18 }, { wch: 20 }, { wch: 12 }, { wch: 8 }, { wch: 20 }];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Tango');
+
+  const stamp = fecha.split('/').reverse().join(''); // YYYYMMDD
+  XLSX.writeFile(wb, `tango_${stamp}.xlsx`);
+}
+
+// ─── UI ───────────────────────────────────────────────────────────────────────
+
+let _tangoRows = [];
+let _exportFecha = '';
+
+function showError(msg) {
+  const el = document.getElementById('alertError');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+  document.getElementById('resultsSection').classList.add('hidden');
+}
+
+function showWarn(msg) {
+  const el = document.getElementById('alertWarn');
+  if (msg) { el.textContent = '⚠ ' + msg; el.classList.remove('hidden'); }
+  else { el.classList.add('hidden'); }
+}
+
+function renderUI(employees, rows, fecha) {
+  document.getElementById('alertError').classList.add('hidden');
+  document.getElementById('resultsSection').classList.remove('hidden');
+
+  const withExtras  = Object.values(employees).filter(e => e.ext50Min + e.ext100Min > 0).length;
+  const withFeriado = Object.values(employees).filter(e => e.feriadoMin > 0).length;
+
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat"><div class="stat-val">${Object.keys(employees).length}</div><div class="stat-lbl">Empleados</div></div>
+    <div class="stat"><div class="stat-val">${rows.length}</div><div class="stat-lbl">Novedades Tango</div></div>
+    <div class="stat"><div class="stat-val">${withExtras}</div><div class="stat-lbl">Con horas extra</div></div>
+    <div class="stat"><div class="stat-val">${withFeriado}</div><div class="stat-lbl">Con feriados</div></div>
+  `;
+
+  const tbody = document.getElementById('previewBody');
+  tbody.innerHTML = '';
+  rows.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${r.fecha}</td>
+      <td><strong>${r.legajo}</strong></td>
+      <td><span class="badge ${BADGE[r.codigo]}">${r.codigo}</span></td>
+      <td>${r.cantidad}</td>
+      <td>${r.valor}</td>
+      <td>${r.obs}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function handleFile(file) {
+  if (!file) return;
+  if (!/\.(xlsx|xls)$/i.test(file.name)) { showError('El archivo debe ser .xlsx o .xls'); return; }
+
+  document.getElementById('filePill').innerHTML =
+    `<span>📄 ${file.name}</span>`;
+  document.getElementById('filePill').classList.remove('hidden');
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const wb = XLSX.read(e.target.result, { type: 'array', cellDates: false });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const { employees, warnings } = processSheet(ws);
+      const { rows, fecha } = buildTangoRows(employees);
+
+      _tangoRows   = rows;
+      _exportFecha = fecha;
+
+      showWarn(warnings);
+      renderUI(employees, rows, fecha);
+    } catch (err) {
+      showError('Error al procesar el archivo: ' + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ─── Eventos ──────────────────────────────────────────────────────────────────
+
+const uploadZone = document.getElementById('uploadZone');
+const fileInput  = document.getElementById('fileInput');
+
+uploadZone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+
+uploadZone.addEventListener('dragover',  e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+uploadZone.addEventListener('dragleave', ()  => uploadZone.classList.remove('dragover'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadZone.classList.remove('dragover');
+  handleFile(e.dataTransfer.files[0]);
+});
+
+document.getElementById('exportBtn').addEventListener('click', () => {
+  if (_tangoRows.length > 0) exportExcel(_tangoRows, _exportFecha);
+});
+</script>
+</body>
+</html>
