@@ -1,0 +1,134 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #f0f4f8;
+  color: #1a202c;
+  min-height: 100vh;
+}
+
+/* ── Header ── */
+.app-header {
+  background: #1a365d;
+  color: white;
+  padding: 1rem 2rem;
+}
+.header-inner h1 { font-size: 1.25rem; font-weight: 700; }
+.header-inner span { font-size: 0.82rem; color: #90cdf4; }
+
+/* ── Layout ── */
+.main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+/* ── Upload zone ── */
+.upload-zone {
+  background: white;
+  border: 2px dashed #90cdf4;
+  border-radius: 12px;
+  padding: 3rem 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  outline: none;
+}
+.upload-zone:hover,
+.upload-zone:focus,
+.upload-zone.dragover { border-color: #3182ce; background: #ebf8ff; }
+.upload-zone.loading  { pointer-events: none; opacity: 0.7; }
+
+.upload-icon { font-size: 2.5rem; margin-bottom: 0.6rem; }
+.upload-text { font-size: 1rem; font-weight: 600; color: #2d3748; }
+.upload-hint { font-size: 0.8rem; color: #a0aec0; margin-top: 0.35rem; }
+
+/* ── Alerts ── */
+.alert {
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+  font-size: 0.88rem;
+}
+.alert-error { background: #fed7d7; color: #9b2c2c; border: 1px solid #fc8181; }
+.alert-warn  { background: #fefcbf; color: #744210; border: 1px solid #f6e05e; }
+
+/* ── Cards ── */
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.card-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #2d3748;
+  padding-bottom: 0.7rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+/* ── Stats ── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+.stat {
+  background: #f7fafc;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+}
+.stat-val { font-size: 2rem; font-weight: 800; color: #3182ce; line-height: 1; }
+.stat-lbl { font-size: 0.75rem; color: #718096; margin-top: 0.3rem; }
+
+/* ── Button ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.3rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  border: none;
+  transition: background 0.15s;
+}
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-success            { background: #38a169; color: white; }
+.btn-success:not(:disabled):hover { background: #276749; }
+
+/* ── Table ── */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+th {
+  background: #f7fafc;
+  text-align: left;
+  padding: 0.55rem 0.85rem;
+  font-weight: 600;
+  border-bottom: 2px solid #e2e8f0;
+  color: #4a5568;
+  white-space: nowrap;
+}
+td { padding: 0.45rem 0.85rem; border-bottom: 1px solid #f0f4f8; }
+tr:hover td { background: #f7fafc; }
+
+/* ── Badges ── */
+.badge {
+  display: inline-block;
+  padding: 0.18rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.badge-hsaut   { background: #bee3f8; color: #2b6cb0; }
+.badge-hsfet   { background: #fed7d7; color: #9b2c2c; }
+.badge-hsex50  { background: #feebc8; color: #7b341e; }
+.badge-hsex100 { background: #e9d8fd; color: #553c9a; }
