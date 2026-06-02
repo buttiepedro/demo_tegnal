@@ -121,7 +121,7 @@ export default function App() {
             type="file"
             accept=".xlsx,.xls"
             style={{ display: 'none' }}
-            onChange={(e) => { reset(); processFile(e.target.files[0]) }}
+            onChange={(e) => { const f = e.target.files[0]; reset(); processFile(f) }}
           />
         </div>
 
