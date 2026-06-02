@@ -26,15 +26,26 @@ Un feriado se detecta por la palabra "FERIADO" en la columna Observaciones o Mar
 
 ---
 
-## Levantar con Docker (recomendado)
+## Deploy en Railway (producción)
+
+Conectá el repo a Railway. Detecta el `Dockerfile` raíz automáticamente y despliega un único servicio que sirve frontend + backend.
+
+Variables de entorno en Railway:
+| Variable | Descripción |
+|----------|-------------|
+| `PORT` | Railway la setea automáticamente |
+
+## Levantar con Docker Compose (desarrollo local)
 
 ```bash
-cp .env.example .env          # ajustá los puertos si hace falta
+cp .env.example .env
 docker-compose up --build
 ```
 
-- Frontend: http://localhost:3000  
-- Backend (API): http://localhost:8000/docs
+- App: http://localhost:80  
+- API docs: http://localhost:8000/docs
+
+> El `docker-compose.yml` usa dos contenedores separados (frontend con nginx + backend). Para producción/Railway se usa el `Dockerfile` raíz que combina todo en uno.
 
 ---
 
