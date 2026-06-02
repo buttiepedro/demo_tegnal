@@ -1,11 +1,9 @@
-import os
 import uuid
 from datetime import date, datetime, timedelta
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, Response
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import Response
 
 from processor import generate_excel, process_workbook
 
@@ -74,17 +72,3 @@ def download(token: str):
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
-
-
-# ── Serve React SPA (production: static/ dir exists after Docker build) ───────
-_STATIC = os.path.join(os.path.dirname(__file__), "static")
-
-if os.path.isdir(_STATIC):
-    app.mount("/assets", StaticFiles(directory=os.path.join(_STATIC, "assets")), name="assets")
-
-    @app.get("/{full_path:path}")
-    def serve_spa(full_path: str):
-        target = os.path.join(_STATIC, full_path)
-        if os.path.isfile(target):
-            return FileResponse(target)
-        return FileResponse(os.path.join(_STATIC, "index.html"))
